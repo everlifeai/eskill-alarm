@@ -1,0 +1,16 @@
+{
+  "name": "eskill-alarm",
+  "version": "1.0.0",
+  "description": "Remind users of things",
+  "main": "index.js",
+  "author": "charles.lobo@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "archieml": "^0.4.2",
+    "cote": "^0.20.0",
+    "cron": "^1.7.1",
+    "cronstrue": "^1.66.0",
+    "elife-utils": "everlifeai/elife-utils",
+    "jughead": "^1.0.0"
+  }
+}
