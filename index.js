@@ -18,9 +18,11 @@ const archieml = require('archieml')
  * Start our microservice.
  */
 function main() {
-    loadReminders()
-    startMicroservice()
-    registerWithCommMgr()
+    loadReminders((err) => {
+        if(err) u.showErr(err)
+        startMicroservice()
+        registerWithCommMgr()
+    })
 }
 
 let REMINDERS = {
@@ -31,11 +33,11 @@ let REMINDERS = {
  * Clear all existing reminders and load them freshly from the reminder
  * file.
  */
-function loadReminders() {
+function loadReminders(cb) {
     fs.readFile(reminderFile(), 'utf8', (err, data) => {
         if(err) {
             if(err.code == 'ENOENT') clearReminders()
-            else u.showErr(err)
+            else cb(err)
         }
         else {
             clearReminders()
@@ -43,6 +45,7 @@ function loadReminders() {
             for(let i = 0;i < d.reminders.length;i++) {
                 addReminder(d.reminders[i])
             }
+            cb()
         }
     })
 }
@@ -57,7 +60,7 @@ function clearReminders() {
 /*      outcome/
  * Save reminders into an ArchieML file
  */
-function saveReminders() {
+function saveReminders(cb) {
     let pfx = `This is your Reminder File. Every pair of lines below represent
     (a) a reminder time in cron format (cron: xxxx)
     (b) a message to ping you with at the appropriate time (message: xxxx)
@@ -70,12 +73,10 @@ command.
 `
 
     fs.writeFile(reminderFile(), pfx, (err) => {
-        if(err) u.showErr(err)
+        if(err) cb(err)
         else {
             let txt = jughead.archieml({ reminders: REMINDERS.reminders })
-            fs.appendFile(reminderFile(), txt, (err) => {
-                if(err) u.showErr(err)
-            })
+            fs.appendFile(reminderFile(), txt, cb)
         }
     })
 
@@ -120,7 +121,6 @@ function addReminder(reminder) {
         cronjob.start()
         REMINDERS.cronjobs.push(cronjob)
         REMINDERS.reminders.push(reminder)
-        saveReminders()
     } catch(e) {}
 }
 
@@ -160,9 +160,16 @@ function startMicroservice() {
             sendReply(`<when to remind> is in crontab format`, req)
             sendReply(`For example: 13 15 * * * Daily meeting (at 1:15 PM)`, req)
         } else {
-            addReminder(reminder)
-            let display = cronstrue.toString(reminder.when)
-            sendReply(`Great - will remind you to ${reminder.msg} ${display}`, req)
+            saveReminders((err) => {
+                if(err) {
+                    sendReply(`Failed to save reminder`, req)
+                    u.showErr(err)
+                } else {
+                    let display = cronstrue.toString(reminder.when)
+                    sendReply(`Great - will remind you to ${reminder.msg} ${display}`, req)
+                    addReminder(reminder)
+                }
+            })
         }
     }
 
