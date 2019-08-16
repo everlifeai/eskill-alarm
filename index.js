@@ -36,8 +36,10 @@ let REMINDERS = {
 function loadReminders(cb) {
     fs.readFile(reminderFile(), 'utf8', (err, data) => {
         if(err) {
-            if(err.code == 'ENOENT') clearReminders()
-            else cb(err)
+            if(err.code == 'ENOENT') {
+                clearReminders()
+                cb()
+            } else cb(err)
         }
         else {
             clearReminders()

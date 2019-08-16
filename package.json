@@ -1,6 +1,6 @@
 {
   "name": "eskill-alarm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Remind users of things",
   "main": "index.js",
   "author": "charles.lobo@gmail.com",
